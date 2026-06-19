@@ -15,12 +15,14 @@
     font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;padding:28px}
   h1{font-size:22px;margin:0 0 2px}
   .sub{color:var(--muted);font-size:13px;margin-bottom:18px;max-width:780px}
-  .controls{display:flex;align-items:center;gap:12px;margin-bottom:22px;flex-wrap:wrap}
+  .controls{display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap}
   .controls label{font-size:13px;color:var(--muted)}
   select{background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:9px;
     padding:9px 12px;font-size:15px;font-weight:600;min-width:150px;cursor:pointer}
   .pill{display:inline-block;background:var(--panel2);border:1px solid var(--line);border-radius:999px;
     padding:3px 10px;font-size:12px;color:var(--muted)}
+  .maturity{background:rgba(247,185,85,0.12);border:1px solid rgba(247,185,85,0.4);color:var(--warn);
+    border-radius:9px;padding:9px 13px;font-size:12.5px;margin:0 0 18px;display:none;max-width:780px;line-height:1.5}
   .grid{display:grid;gap:16px}
   .kpis{grid-template-columns:repeat(4,1fr)}
   .row2{grid-template-columns:1fr 1fr;margin-top:16px}
@@ -45,6 +47,7 @@
     <select id="month"></select>
     <span id="ctx" class="pill"></span>
   </div>
+  <div class="maturity" id="maturity"></div>
 
   <div class="grid kpis">
     <div class="card kpi"><div class="num" id="k_cohort" style="color:var(--accent)">—</div><div class="lab">First-time customers</div></div>
@@ -69,7 +72,7 @@
     <div class="card">
       <h2>All cohorts &mdash; size &amp; 6-month repeat rate</h2>
       <div class="chartwrap tall"><canvas id="trend"></canvas></div>
-      <div class="note">Bars = first-time customers per month; line = share repeating within 6 months. Selected month is highlighted. Click a bar to jump to that month.</div>
+      <div class="note">Bars = first-time customers per month; line = share repeating within 6 months. Selected month is highlighted in bright amber. <span style="color:var(--warn)">Faint amber bars</span> are recent cohorts still inside their 6-month window — their repeat rates are incomplete and will rise. Click a bar to jump to that month.</div>
     </div>
   </div>
 
@@ -84,24 +87,39 @@ const RAW=[
 ["2022-01",1365,494,23,21,6,3,0],["2022-02",1425,458,63,6,8,3,5],["2022-03",1684,496,48,15,14,8,3],["2022-04",1540,427,47,19,10,4,3],["2022-05",1685,514,46,15,8,7,6],["2022-06",1587,539,47,12,4,7,7],["2022-07",1453,470,39,17,12,6,5],["2022-08",1825,585,63,19,11,13,14],["2022-09",1909,581,92,26,21,15,12],["2022-10",2315,662,121,32,22,13,19],["2022-11",2256,669,102,34,22,16,8],["2022-12",2573,705,79,24,21,7,5],
 ["2023-01",2474,683,84,18,8,8,6],["2023-02",2743,713,86,22,8,5,16],["2023-03",3008,778,48,12,5,11,14],["2023-04",2589,673,41,12,18,8,11],["2023-05",2609,652,53,25,15,11,9],["2023-06",2645,726,58,24,13,10,10],["2023-07",2673,711,83,21,13,8,12],["2023-08",2854,711,87,24,14,12,13],["2023-09",2804,744,77,26,26,11,12],["2023-10",2658,677,83,22,19,13,9],["2023-11",2227,661,55,25,14,11,8],["2023-12",1832,534,40,17,15,7,4],
 ["2024-01",2097,617,39,15,11,10,6],["2024-02",2245,633,46,16,9,9,12],["2024-03",2545,709,65,14,13,10,4],["2024-04",1975,527,56,24,7,6,4],["2024-05",2034,614,31,12,6,14,8],["2024-06",2008,733,35,13,8,8,7],["2024-07",2171,734,46,13,10,10,3],["2024-08",2050,729,34,12,11,9,17],["2024-09",2082,668,45,19,13,14,5],["2024-10",2169,747,35,11,12,4,10],["2024-11",1644,521,19,11,13,10,4],["2024-12",1872,573,31,19,13,6,7],
-["2025-01",1929,535,28,15,10,7,6],["2025-02",1539,393,22,10,8,5,4],["2025-03",2207,575,36,17,11,8,4],["2025-04",1583,399,21,10,4,7,2],["2025-05",1873,445,27,15,10,9,6],["2025-06",1655,383,24,17,7,4,6],["2025-07",2087,449,33,9,9,9,5],["2025-08",2206,550,37,22,6,3,4],["2025-09",2062,531,43,20,2,8,7],["2025-10",2104,583,30,13,6,6,8],["2025-11",1902,562,33,9,10,2,1],["2025-12",2231,638,37,12,13,4,0]
+["2025-01",1929,535,28,15,10,7,6],["2025-02",1539,393,22,10,8,5,4],["2025-03",2207,575,36,17,11,8,4],["2025-04",1583,399,21,10,4,7,2],["2025-05",1873,445,27,15,10,9,6],["2025-06",1655,383,24,17,7,4,6],["2025-07",2087,449,33,9,9,9,5],["2025-08",2206,550,37,22,6,3,4],["2025-09",2062,531,43,20,2,8,7],["2025-10",2104,583,30,13,6,6,8],["2025-11",1902,562,33,9,10,2,1],["2025-12",2231,638,37,12,13,4,0],
+["2026-01",1804,412,48,14,7,10,0],["2026-02",1859,442,31,7,9,3,0],["2026-03",1957,489,20,9,1,0,0],["2026-04",1749,403,20,1,0,0,0],["2026-05",1814,447,12,0,0,0,0],["2026-06",1114,157,0,0,0,0,0]
 ];
 
 const MONTHNAMES=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 function pretty(ym){const [y,m]=ym.split("-");return MONTHNAMES[+m-1]+" "+y;}
 
+// maturity: a cohort's 6-month window is complete once 6 months have passed since the end of its month
+const TODAY=new Date();
+function maturity(ym){
+  const [y,m]=ym.split("-").map(Number);
+  const firstOfNext=new Date(y,m,1);        // first day of the month AFTER the cohort month
+  const windowEnd=new Date(y,m+6,1);        // ~6 months after that
+  let elapsed=(TODAY.getFullYear()-firstOfNext.getFullYear())*12+(TODAY.getMonth()-firstOfNext.getMonth());
+  elapsed=Math.max(0,Math.min(6,elapsed));
+  return {matured:TODAY>=windowEnd, elapsed};
+}
+
 const data=RAW.map(r=>{
   const buckets=r.slice(2);
   const repeats=buckets.reduce((a,b)=>a+b,0);
+  const mat=maturity(r[0]);
   return {ym:r[0], cohort:r[1], buckets, repeats, norepeat:r[1]-repeats,
-          rate:+(repeats/r[1]*100).toFixed(1)};
+          rate:+(repeats/r[1]*100).toFixed(1), matured:mat.matured, elapsed:mat.elapsed};
 });
 const byYM=Object.fromEntries(data.map(d=>[d.ym,d]));
+
+function barColor(d,selected){ return selected ? '#f7b955' : (d.matured ? '#2f3b55' : 'rgba(247,185,85,0.30)'); }
 
 // populate dropdown (newest first)
 const sel=document.getElementById('month');
 [...data].reverse().forEach(d=>{
-  const o=document.createElement('option');o.value=d.ym;o.textContent=pretty(d.ym);sel.appendChild(o);
+  const o=document.createElement('option');o.value=d.ym;o.textContent=pretty(d.ym)+(d.matured?"":" • maturing");sel.appendChild(o);
 });
 sel.value="2025-01";
 
@@ -132,14 +150,17 @@ const trend=new Chart(document.getElementById('trend'),{
   data:{labels,
     datasets:[
       {type:'bar',label:'First-time customers',data:cohortArr,yAxisID:'y',
-        backgroundColor:data.map(()=>'#2f3b55'),borderRadius:3,order:2},
+        backgroundColor:data.map(d=>barColor(d,false)),borderRadius:3,order:2},
       {type:'line',label:'6-mo repeat rate',data:rateArr,yAxisID:'y1',
-        borderColor:'#22c1a5',backgroundColor:'#22c1a5',tension:.3,pointRadius:2,order:1}
+        borderColor:'#22c1a5',backgroundColor:'#22c1a5',tension:.3,pointRadius:2,
+        segment:{borderDash:ctx=>data[ctx.p1DataIndex] && !data[ctx.p1DataIndex].matured?[5,4]:undefined},order:1}
     ]},
   options:{interaction:{mode:'index',intersect:false},
     onClick:(e,els)=>{if(els.length){sel.value=data[els[0].index].ym;render();}},
     plugins:{legend:{position:'bottom'},
-      tooltip:{callbacks:{label:c=>c.dataset.yAxisID==='y1'?` Repeat rate: ${c.parsed.y}%`:` First-time: ${c.parsed.y.toLocaleString()}`}}},
+      tooltip:{callbacks:{label:c=>{const d=data[c.dataIndex];
+        if(c.dataset.yAxisID==='y1') return ` Repeat rate: ${c.parsed.y}%`+(d.matured?'':' (incomplete)');
+        return ` First-time: ${c.parsed.y.toLocaleString()}`+(d.matured?'':' (maturing)');}}}},
     scales:{
       x:{grid:{display:false},ticks:{maxRotation:90,minRotation:90,font:{size:9},autoSkip:false}},
       y:{position:'left',beginAtZero:true,grid:{color:line},title:{display:true,text:'First-time customers'}},
@@ -153,18 +174,24 @@ function render(){
   document.getElementById('ctx').textContent=`6-month repeat window`;
   document.getElementById('k_cohort').textContent=d.cohort.toLocaleString();
   document.getElementById('k_rep').textContent=d.repeats.toLocaleString();
-  document.getElementById('k_rep_f').textContent=`${d.rate}% of cohort`;
+  document.getElementById('k_rep_f').textContent=`${d.rate}% of cohort`+(d.matured?'':' so far');
   document.getElementById('k_norep').textContent=d.norepeat.toLocaleString();
   document.getElementById('k_norep_f').textContent=`${(100-d.rate).toFixed(1)}% of cohort`;
   const m1pct=d.repeats?Math.round(d.buckets[0]/d.repeats*100):0;
   document.getElementById('k_m1').textContent=m1pct+'%';
   document.getElementById('k_m1_f').textContent=`${d.buckets[0]} of ${d.repeats}`;
 
+  const mb=document.getElementById('maturity');
+  if(!d.matured){
+    mb.style.display='block';
+    mb.innerHTML=`⚠ <strong>${pretty(d.ym)} is still maturing.</strong> About ${d.elapsed} of 6 months have elapsed since this cohort's first purchases, so the repeat count (${d.repeats.toLocaleString()}) and rate (${d.rate}%) are incomplete and will rise as more time passes. Fully comparable cohorts run through Nov 2025.`;
+  } else { mb.style.display='none'; }
+
   donut.data.datasets[0].data=[d.repeats,d.norepeat];donut.update();
   bars.data.datasets[0].data=d.buckets.slice();bars.update();
 
   const idx=data.findIndex(x=>x.ym===d.ym);
-  trend.data.datasets[0].backgroundColor=data.map((x,i)=>i===idx?'#f7b955':'#2f3b55');
+  trend.data.datasets[0].backgroundColor=data.map((x,i)=>barColor(x,i===idx));
   trend.data.datasets[1].pointRadius=data.map((x,i)=>i===idx?5:2);
   trend.data.datasets[1].pointBackgroundColor=data.map((x,i)=>i===idx?'#f7b955':'#22c1a5');
   trend.update();
